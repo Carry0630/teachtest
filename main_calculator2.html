@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>營業額計算器 - 首頁</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f0f8ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-size: cover;
+    background-position: center;
+  }
+  header {
+    width: 100%;
+    padding: 20px;
+    background-color: #007BFF;
+    color: white;
+    text-align: center;
+  }
+  nav {
+    margin-top: 20px;
+  }
+  nav a {
+    margin: 0 15px;
+    text-decoration: none;
+    font-size: 18px;
+    color: #007BFF;
+  }
+  nav a:hover {
+    text-decoration: underline;
+  }
+  #uploadedImage {
+    max-width: 1080px;
+    max-height: 1080px;
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .calculator-table {
+    width: 1080px;
+    border-collapse: collapse;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    margin-top: 30px;
+  }
+  .calculator-table, .calculator-table th, .calculator-table td {
+    border: 1px solid #ddd;
+  }
+  .calculator-table th, .calculator-table td {
+    padding: 10px;
+    text-align: center;
+  }
+  .result {
+    font-size: 1.2em;
+    margin-top: 10px;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 5px;
+    border-radius: 5px;
+  }
+  .highlight-red {
+    color: red;
+  }
+  .icon-button {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  #backgroundIcon {
+    left: 80px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>歡迎來到營業額計算器</h1>
+</header>
+
+<nav>
+  <a href="#calculator">計算器</a>
+  <a href="#about">關於我們</a>
+</nav>
+
+<!-- 圖片上傳 -->
+<input type="file" id="imageUpload" accept="image/*" onchange="loadImage(event)" style="display: none;">
+<button class="icon-button" onclick="document.getElementById('imageUpload').click()">🖼️</button>
+<img id="uploadedImage" alt="選擇的圖片">
+
+<!-- 背景圖片上傳 -->
+<input type="file" id="backgroundUpload" accept="image/*" onchange="changeBackground(event)" style="display: none;">
+<button id="backgroundIcon" class="icon-button" onclick="document.getElementById('backgroundUpload').click()">🌆</button>
+
+<section id="calculator">
+  <h2>營業額計算器</h2>
+
+  <table class="calculator-table">
+    <tr>
+      <th>項目</th>
+      <th>數值</th>
+    </tr>
+    <tr>
+      <td>廣告費</td>
+      <td><input type="number" id="adCost" placeholder="輸入廣告費"></td>
+    </tr>
+    <tr>
+      <td>倍率</td>
+      <td><input type="number" id="multiplier" placeholder="輸入倍率"></td>
+    </tr>
+    <tr>
+      <td>CTR</td>
+      <td><input type="text" id="ctr" placeholder="輸入CTR（例如 50% 或 0.5）"></td>
+    </tr>
+    <tr>
+      <td>CVR</td>
+      <td><input type="text" id="cvr" placeholder="輸入CVR（例如 10% 或 0.1）"></td>
+    </tr>
+    <tr>
+      <td>客單</td>
+      <td><input type="number" id="avgOrderValue" placeholder="輸入客單金額"></td>
+    </tr>
+    <tr>
+      <td>固定成本</td>
+      <td><input type="number" id="fixedCost" placeholder="輸入固定成本"></td>
+    </tr>
+    <tr>
+      <td>毛利率</td>
+      <td><input type="text" id="grossProfitRate" placeholder="輸入毛利率（例如 20% 或 0.2）"></td>
+    </tr>
+    <tr>
+      <td>店租</td>
+      <td><input type="number" id="rent" placeholder="輸入店租"></td>
+    </tr>
+    <tr>
+      <td>坪數</td>
+      <td><input type="number" id="area" placeholder="輸入坪數"></td>
+    </tr>
+  </table>
+
+  <button onclick="calculateAll()" style="margin-top: 20px; padding: 10px 20px; font-size: 1em;">計算</button>
+
+  <div id="result-revenue" class="result">營業額：0</div>
+  <div id="result-clicks" class="result">點擊數：0</div>
+  <div id="result-orders" class="result">訂單數：0</div>
+  <div id="result-bep" class="result">BEP (損益兩平)：0</div>
+  <div id="result-roas" class="result">ROAS：0</div>
+  <div id="result-efficiency" class="result">坪效：0</div>
+</section>
+
+<script>
+  // 上傳圖片顯示
+  function loadImage(event) {
+    const image = document.getElementById('uploadedImage');
+    image.src = URL.createObjectURL(event.target.files[0]);
+    image.onload = function() {
+      URL.revokeObjectURL(image.src); // 釋放內存
+    }
+    image.style.display = 'block';
+  }
+
+  // 更改背景圖片
+  function changeBackground(event) {
+    document.body.style.backgroundImage = `url(${URL.createObjectURL(event.target.files[0])})`;
+  }
+
+  function parsePercentage(input) {
+    if (input.includes('%')) {
+      return parseFloat(input.replace('%', '')) / 100;
+    }
+    return parseFloat(input);
+  }
+
+  function calculateAll() {
+    const adCost = parseFloat(document.getElementById('adCost').value) || 0;
+    const multiplier = parseFloat(document.getElementById('multiplier').value) || 0;
+    const ctrInput = document.getElementById('ctr').value || "0";
+    const cvrInput = document.getElementById('cvr').value || "0";
+    const avgOrderValue = parseFloat(document.getElementById('avgOrderValue').value) || 0;
+    const fixedCost = parseFloat(document.getElementById('fixedCost').value) || 0;
+    const grossProfitRateInput = document.getElementById('grossProfitRate').value || "0";
+    const rent = parseFloat(document.getElementById('rent').value) || 0;
+    const area = parseFloat(document.getElementById('area').value) || 0;
+
+    const ctr = parsePercentage(ctrInput);
+    const cvr = parsePercentage(cvrInput);
+    const grossProfitRate = parsePercentage(grossProfitRateInput);
+
+    const revenue = adCost * multiplier * ctr * cvr * avgOrderValue;
+    const clicks = adCost * multiplier * ctr;
+    const orders = clicks * cvr;
+    const bep = grossProfitRate > 0 ? fixedCost / grossProfitRate : 0;
+    const roas = rent > 0 ? revenue / rent : 0;
+    const efficiency = area > 0 ? revenue / area : 0;
+
+    const revenueElement = document.getElementById('result-revenue');
+    const bepElement = document.getElementById('result-bep');
+
+    revenueElement.innerText = `營業額：${revenue.toFixed(2)}`;
+    document.getElementById('result-clicks').innerText = `點擊數：${clicks.toFixed(2)}`;
+    document.getElementById('result-orders').innerText = `訂單數：${orders.toFixed(2)}`;
+    bepElement.innerText = `BEP (損益兩平)：${bep.toFixed(2)}`;
+    document.getElementById('result-roas').innerText = `ROAS：${roas.toFixed(2)}`;
+    document.getElementById('result-efficiency').innerText = `坪效：${efficiency.toFixed(2)}`;
+
+    if (revenue >= bep) {
+      revenueElement.classList.add('highlight-red');
+      bepElement.classList.remove('highlight-red');
+    } else {
+      revenueElement.classList.remove('highlight-red');
+      bepElement.classList.add('highlight-red');
+    }
+  }
+</script>
+</body>
+</html>
